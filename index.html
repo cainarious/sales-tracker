@@ -212,12 +212,20 @@
 
   <!-- MAP -->
   <div class="page" id="page-map">
-    <div class="section-header"><div class="section-title">Fırsatların ülke dağılımı</div></div>
+    <div class="section-header">
+      <div class="section-title">Fırsatların dünya haritası</div>
+      <div style="display:flex;gap:14px;font-size:12px;align-items:center;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#185FA5;display:inline-block"></span>Proje Lokasyonu</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#D97706;display:inline-block"></span>Teklif Edilen</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#059669;display:inline-block"></span>Alım Yapılan</span>
+      </div>
+    </div>
     <div id="map-container">
       <div id="map-tooltip"></div>
       <svg id="map-svg" style="width:100%;height:100%"></svg>
     </div>
-    <div class="section-title" style="margin-bottom:.75rem">Ülkeler</div>
+    <div id="map-route-info" style="margin-bottom:1rem"></div>
+    <div class="section-title" style="margin-bottom:.75rem">Proje lokasyonları</div>
     <div class="country-grid" id="country-grid"></div>
     <div id="country-detail"></div>
   </div>
@@ -239,7 +247,27 @@
           <option value="INKA">INKA</option>
         </select>
       </div>
-      <div class="form-group"><label>Ülke</label><input id="m-country" placeholder="Türkiye, Kazakistan..."></div>
+      <div class="form-group"><label>Sevkiyat şekli</label>
+        <select id="m-shipmode">
+          <option value="">— Seçiniz —</option>
+          <option value="ship">🚢 Gemi</option>
+          <option value="truck">🚛 TIR / Kamyon</option>
+          <option value="air">✈️ Uçak</option>
+          <option value="combined">🔀 Kombine</option>
+        </select>
+      </div>
+    </div>
+    <div style="background:var(--bg2);border-radius:var(--radius);padding:12px;margin-bottom:12px">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;display:flex;gap:16px;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#185FA5;display:inline-block"></span>Proje Lokasyonu</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#D97706;display:inline-block"></span>Teklif Edilen Ülke</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#059669;display:inline-block"></span>Alım Yapılan Ülke</span>
+      </div>
+      <div class="form-row" style="margin-bottom:8px">
+        <div class="form-group" style="margin-bottom:0"><label>📍 Proje lokasyonu</label><input id="m-country-loc" placeholder="Kazakistan, Azerbaycan..."></div>
+        <div class="form-group" style="margin-bottom:0"><label>🟠 Teklif edilen ülke</label><input id="m-country-offer" placeholder="Türkiye, Almanya..."></div>
+      </div>
+      <div class="form-group" style="margin-bottom:0"><label>🟢 Ürünün alınacağı ülke</label><input id="m-country-supply" placeholder="Çin, ABD, İtalya..."></div>
     </div>
     <div class="form-group"><label>Satış aşaması</label>
       <div class="stages-select" id="stage-select">
@@ -408,15 +436,20 @@ function renderOpps(){
     const urgent=o.status==='active'&&d!==null&&d>=0&&d<=3;
     const pct=o.pct||(o.stage?PCT_MAP[o.stage]:10);
     const pctColor=pct>=75?'#1D9E75':pct>=50?'#185FA5':pct>=25?'#EF9F27':'#888780';
-    const sIdx=STAGES.indexOf(o.stage);
     const stagePills=STAGES.map((s,i)=>`<span class="stage-pill ${o.stage===s?'active':''}" style="${o.stage===s?`background:${S_COLORS[i]}22;color:${S_COLORS[i]};border-color:${S_COLORS[i]};font-weight:600`:''}" onclick="quickStage('${o.id}','${s}')">${s}</span>`).join('');
     const badge=o.status==='won'?'<span class="badge badge-won">Kazanıldı</span>':o.status==='lost'?'<span class="badge badge-lost">Kaybedildi</span>':'<span class="badge badge-active">Aktif</span>';
+    const shipIcon={ship:'🚢',truck:'🚛',air:'✈️',combined:'🔀'}[o.shipmode]||'';
+    const countries=[
+      o.countryLoc?`<span style="color:#185FA5">📍 ${o.countryLoc}</span>`:'',
+      o.countryOffer?`<span style="color:#D97706">🟠 ${o.countryOffer}</span>`:'',
+      o.countrySupply?`<span style="color:#059669">🟢 ${o.countrySupply}</span>`:''
+    ].filter(Boolean).join('<span style="color:var(--text3)"> · </span>');
     return `<div class="opp-card ${urgent?'urgent':''}">
       ${urgent?`<div style="position:absolute;top:10px;right:12px;font-size:11px;color:var(--red);display:flex;align-items:center;gap:4px"><i class="ti ti-alert-triangle pulse"></i>${d===0?'Bugün!':d+'g kaldı'}</div>`:''}
       <div class="opp-header">
         <div style="flex:1">
-          <div class="opp-title">${o.title}</div>
-          <div class="opp-meta">${o.company}${o.country?' · '+o.country:''}</div>
+          <div class="opp-title">${o.title}${shipIcon?' <span style="font-size:14px">'+shipIcon+'</span>':''}</div>
+          <div class="opp-meta" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:3px">${countries||'<span>Ülke girilmedi</span>'}</div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
           ${badge}
@@ -461,7 +494,10 @@ function openModal(id){
   document.getElementById('save-btn-label').textContent=id?'Güncelle':'Ekle';
   document.getElementById('m-title').value=o.title||'';
   document.getElementById('m-company').value=o.company||'FMG';
-  document.getElementById('m-country').value=o.country||'';
+  document.getElementById('m-shipmode').value=o.shipmode||'';
+  document.getElementById('m-country-loc').value=o.countryLoc||'';
+  document.getElementById('m-country-offer').value=o.countryOffer||'';
+  document.getElementById('m-country-supply').value=o.countrySupply||'';
   document.getElementById('m-stage').value=o.stage||'Lead';
   document.getElementById('m-pct').value=o.pct||10;
   document.getElementById('m-price').value=o.price||'';
@@ -490,7 +526,12 @@ function saveOpp(){
   const data={
     id:editId||genId(),title,
     company:document.getElementById('m-company').value,
-    country:document.getElementById('m-country').value.trim(),
+    shipmode:document.getElementById('m-shipmode').value||'',
+    countryLoc:document.getElementById('m-country-loc').value.trim(),
+    countryOffer:document.getElementById('m-country-offer').value.trim(),
+    countrySupply:document.getElementById('m-country-supply').value.trim(),
+    // legacy compat
+    country:document.getElementById('m-country-loc').value.trim(),
     stage:document.getElementById('m-stage').value||'Lead',
     pct:parseInt(document.getElementById('m-pct').value)||10,
     price:document.getElementById('m-price').value||'',
@@ -508,66 +549,256 @@ function saveOpp(){
 
 function renderCountries(){
   const map={};
-  opps.filter(o=>o.country&&o.status==='active').forEach(o=>{map[o.country]=(map[o.country]||0)+1;});
+  opps.filter(o=>o.status==='active'&&o.countryLoc).forEach(o=>{map[o.countryLoc]=(map[o.countryLoc]||0)+1;});
   const sorted=Object.entries(map).sort((a,b)=>b[1]-a[1]);
   document.getElementById('country-grid').innerHTML=sorted.length?sorted.map(([c,n])=>`
-    <div class="country-chip" onclick="showCountryDetail('${c}')">
-      <div class="country-chip-name">${c}</div>
-      <div class="country-chip-count">${n} aktif fırsat</div>
-    </div>`).join(''):`<div style="color:var(--text2);font-size:13px">Fırsatlara ülke ekleyin.</div>`;
+    <div class="country-chip" onclick="selectLocCountry('${c.replace(/'/g,"\\'")}')">
+      <div class="country-chip-name">📍 ${c}</div>
+      <div class="country-chip-count">${n} aktif fırsat — tıkla rotayı gör</div>
+    </div>`).join(''):`<div style="color:var(--text2);font-size:13px">Proje lokasyonu girilmemiş.</div>`;
 }
+
 function showCountryDetail(country){
-  const list=opps.filter(o=>o.country===country);
+  const list=opps.filter(o=>(o.countryLoc||o.country||'')===country);
   document.getElementById('country-detail').innerHTML=`
-    <div class="section-title" style="margin-bottom:.75rem">${country} — ${list.length} fırsat</div>
-    <div class="opp-list">`+list.map(o=>`
-    <div class="opp-card" style="padding:.75rem 1rem">
-      <div style="font-weight:600">${o.title}</div>
-      <div style="font-size:12px;color:var(--text2)">${o.company} · ${o.stage} · ${o.pct}%${o.price?' · $'+fmt(o.price):''}</div>
-    </div>`).join('')+'</div>';
+    <div class="section-title" style="margin-bottom:.75rem;margin-top:1rem">📍 ${country} — ${list.length} fırsat</div>
+    <div class="opp-list">`+list.map(o=>{
+      const shipIcon={ship:'🚢',truck:'🚛',air:'✈️',combined:'🔀'}[o.shipmode]||'';
+      return `<div class="opp-card" style="padding:.875rem 1rem">
+        <div style="font-weight:600;margin-bottom:4px">${o.title} ${shipIcon}</div>
+        <div style="font-size:12px;display:flex;gap:10px;flex-wrap:wrap">
+          <span>${o.company} · ${o.stage} · ${o.pct}%${o.price?' · $'+fmt(o.price):''}</span>
+        </div>
+        <div style="font-size:12px;margin-top:6px;display:flex;gap:10px;flex-wrap:wrap">
+          ${o.countryOffer?`<span style="color:#D97706">🟠 Teklif: ${o.countryOffer}</span>`:''}
+          ${o.countrySupply?`<span style="color:#059669">🟢 Alım: ${o.countrySupply}</span>`:''}
+        </div>
+      </div>`;
+    }).join('')+'</div>';
+}
+
+// Country name → approximate centroid [lon, lat]
+const COUNTRY_COORDS={
+  'Turkey':[35.24,38.96],'Türkiye':[35.24,38.96],
+  'Kazakhstan':[66.92,48.02],'Kazakistan':[66.92,48.02],
+  'Azerbaijan':[47.58,40.14],'Azerbaycan':[47.58,40.14],
+  'Russia':[105.31,61.52],'Rusya':[105.31,61.52],
+  'Germany':[10.45,51.16],'Almanya':[10.45,51.16],
+  'Italy':[12.57,41.87],'İtalya':[12.57,41.87],
+  'France':[2.21,46.23],'Fransa':[2.21,46.23],
+  'United Kingdom':[-3.44,55.38],'İngiltere':[-3.44,55.38],
+  'United States':[-95.71,37.09],'ABD':[-95.71,37.09],
+  'China':[104.19,35.86],'Çin':[104.19,35.86],
+  'Japan':[138.25,36.20],'Japonya':[138.25,36.20],
+  'South Korea':[127.77,35.91],'Güney Kore':[127.77,35.91],
+  'Saudi Arabia':[45.08,23.89],'Suudi Arabistan':[45.08,23.89],
+  'UAE':[53.85,23.42],'Birleşik Arap Emirlikleri':[53.85,23.42],
+  'Iran':[53.69,32.43],'İran':[53.69,32.43],
+  'Iraq':[43.68,33.22],'Irak':[43.68,33.22],
+  'Egypt':[30.80,26.82],'Mısır':[30.80,26.82],
+  'Netherlands':[5.29,52.13],'Hollanda':[5.29,52.13],
+  'Spain':[-3.75,40.46],'İspanya':[-3.75,40.46],
+  'Poland':[19.14,51.92],'Polonya':[19.14,51.92],
+  'Ukraine':[31.16,48.38],'Ukrayna':[31.16,48.38],
+  'Romania':[24.97,45.94],'Romanya':[24.97,45.94],
+  'Greece':[21.82,39.07],'Yunanistan':[21.82,39.07],
+  'Bulgaria':[25.49,42.73],'Bulgaristan':[25.49,42.73],
+  'Georgia':[43.36,42.32],'Gürcistan':[43.36,42.32],
+  'Turkmenistan':[58.99,38.97],'Türkmenistan':[58.99,38.97],
+  'Uzbekistan':[63.97,41.38],'Özbekistan':[63.97,41.38],
+  'India':[78.96,20.59],'Hindistan':[78.96,20.59],
+  'Pakistan':[69.35,30.38],'Pakistan':[69.35,30.38],
+  'Qatar':[51.18,25.35],'Katar':[51.18,25.35],
+  'Kuwait':[47.48,29.31],'Kuveyt':[47.48,29.31],
+  'Libya':[17.23,26.34],'Libya':[17.23,26.34],
+  'Algeria':[1.66,28.03],'Cezayir':[1.66,28.03],
+  'Nigeria':[8.67,9.08],'Nijerya':[8.67,9.08],
+  'South Africa':[22.94,-30.56],'Güney Afrika':[22.94,-30.56],
+  'Brazil':[-51.93,-14.24],'Brezilya':[-51.93,-14.24],
+  'Argentina':[-63.62,-38.42],'Arjantin':[-63.62,-38.42],
+  'Mexico':[-102.55,23.63],'Meksika':[-102.55,23.63],
+  'Canada':[-96.82,56.13],'Kanada':[-96.82,56.13],
+  'Australia':[133.78,-25.27],'Avustralya':[133.78,-25.27],
+  'Singapore':[103.82,1.35],'Singapur':[103.82,1.35],
+  'Malaysia':[109.70,4.21],'Malezya':[109.70,4.21],
+  'Indonesia':[113.92,-0.79],'Endonezya':[113.92,-0.79],
+};
+
+function getCoord(name){return COUNTRY_COORDS[name]||null;}
+
+let mapProj=null,mapSvgSel=null,mapW=900,mapH=420;
+let animationFrames=[];
+
+function clearAnimations(){animationFrames.forEach(clearTimeout);animationFrames=[];mapSvgSel&&mapSvgSel.selectAll('.route-layer').remove();}
+
+function selectLocCountry(locName){
+  clearAnimations();
+  document.getElementById('country-detail').innerHTML='';
+  showCountryDetail(locName);
+
+  const locCoord=getCoord(locName);
+  if(!locCoord||!mapProj){return;}
+
+  const relevantOpps=opps.filter(o=>o.status==='active'&&(o.countryLoc===locName||o.country===locName));
+  const svg=mapSvgSel;
+  const layer=svg.append('g').attr('class','route-layer');
+
+  const locPx=mapProj(locCoord);
+
+  // Draw location pin
+  layer.append('circle').attr('cx',locPx[0]).attr('cy',locPx[1]).attr('r',7)
+    .attr('fill','#185FA5').attr('stroke','#fff').attr('stroke-width',2).attr('opacity',0.9);
+  layer.append('circle').attr('cx',locPx[0]).attr('cy',locPx[1]).attr('r',14)
+    .attr('fill','none').attr('stroke','#185FA5').attr('stroke-width',1.5).attr('opacity',0.4);
+
+  // Info box
+  document.getElementById('map-route-info').innerHTML=`
+    <div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:.875rem 1rem;font-size:13px">
+      <strong>📍 ${locName}</strong> — ${relevantOpps.length} aktif fırsat
+      <div style="margin-top:6px;display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--text2)">
+        <span>🟠 Teklif edilen: ${[...new Set(relevantOpps.map(o=>o.countryOffer).filter(Boolean))].join(', ')||'—'}</span>
+        <span>🟢 Alım yapılan: ${[...new Set(relevantOpps.map(o=>o.countrySupply).filter(Boolean))].join(', ')||'—'}</span>
+      </div>
+    </div>`;
+
+  const SHIP_EMOJI={ship:'🚢',truck:'🚛',air:'✈️',combined:'🔀'};
+
+  relevantOpps.forEach((o,oi)=>{
+    // Draw offer country route
+    if(o.countryOffer){
+      const c=getCoord(o.countryOffer);
+      if(c){
+        const px=mapProj(c);
+        drawAnimatedRoute(layer,locPx,px,'#D97706',o.shipmode,oi*120);
+        layer.append('circle').attr('cx',px[0]).attr('cy',px[1]).attr('r',5)
+          .attr('fill','#D97706').attr('stroke','#fff').attr('stroke-width',1.5);
+        layer.append('text').attr('x',px[0]+7).attr('y',px[1]+4)
+          .attr('font-size',10).attr('fill','#D97706').text(o.countryOffer);
+      }
+    }
+    // Draw supply country route
+    if(o.countrySupply){
+      const c=getCoord(o.countrySupply);
+      if(c){
+        const px=mapProj(c);
+        drawAnimatedRoute(layer,px,locPx,'#059669',o.shipmode,oi*120+60);
+        layer.append('circle').attr('cx',px[0]).attr('cy',px[1]).attr('r',5)
+          .attr('fill','#059669').attr('stroke','#fff').attr('stroke-width',1.5);
+        layer.append('text').attr('x',px[0]+7).attr('y',px[1]+4)
+          .attr('font-size',10).attr('fill','#059669').text(o.countrySupply);
+      }
+    }
+  });
+}
+
+function drawAnimatedRoute(layer,from,to,color,shipmode,delay){
+  const dx=to[0]-from[0],dy=to[1]-from[1];
+  const dist=Math.sqrt(dx*dx+dy*dy);
+  const cx=(from[0]+to[0])/2;
+  const cy=(from[1]+to[1])/2 - dist*0.35;
+
+  // Draw arc path
+  const pathEl=layer.append('path')
+    .attr('d',`M${from[0]},${from[1]} Q${cx},${cy} ${to[0]},${to[1]}`)
+    .attr('fill','none').attr('stroke',color).attr('stroke-width',1.5)
+    .attr('stroke-dasharray','5,3').attr('opacity',0.6);
+
+  // Animated icon along path
+  const ICONS={ship:'⛴',truck:'🚛',air:'✈',combined:'✈'};
+  const icon=ICONS[shipmode]||'✈';
+
+  const fo=layer.append('foreignObject').attr('width',20).attr('height',20)
+    .attr('x',from[0]-10).attr('y',from[1]-10).attr('opacity',0);
+  fo.append('xhtml:span').style('font-size','14px').text(icon);
+
+  const pathNode=pathEl.node();
+  const totalLen=pathNode.getTotalLength();
+  let start=null;
+  const duration=2200;
+
+  function animate(ts){
+    if(!start)start=ts+delay;
+    const elapsed=ts-start;
+    if(elapsed<0){animationFrames.push(requestAnimationFrame(animate));return;}
+    const t=Math.min(elapsed/duration,1);
+    const pt=pathNode.getPointAtLength(t*totalLen);
+    fo.attr('x',pt.x-10).attr('y',pt.y-10).attr('opacity',t<0.05?t*20:t>0.95?(1-t)*20:1);
+    if(t<1)animationFrames.push(requestAnimationFrame(animate));
+    else fo.attr('opacity',0);
+  }
+  animationFrames.push(requestAnimationFrame(animate));
 }
 
 function loadMap(){
   mapLoaded=true;
-  const svg=d3.select('#map-svg');
   const el=document.getElementById('map-container');
-  const W=el.offsetWidth||900,H=420;
-  svg.attr('viewBox',`0 0 ${W} ${H}`);
-  const proj=d3.geoNaturalEarth1().scale(W/6.3).translate([W/2,H/2]);
-  const path=d3.geoPath(proj);
+  mapW=el.offsetWidth||900;mapH=420;
+  const svg=d3.select('#map-svg');
+  mapSvgSel=svg;
+  svg.attr('viewBox',`0 0 ${mapW} ${mapH}`);
+  mapProj=d3.geoNaturalEarth1().scale(mapW/6.3).translate([mapW/2,mapH/2]);
+  const path=d3.geoPath(mapProj);
   const isDark=matchMedia('(prefers-color-scheme:dark)').matches;
   const tip=document.getElementById('map-tooltip');
 
-  const cmap={};
-  opps.forEach(o=>{if(o.country&&o.status==='active'){const k=o.country.toLowerCase();cmap[k]=(cmap[k]||0)+1;}});
+  // Build country sets
+  const locSet=new Set(),offerSet=new Set(),supplySet=new Set();
+  opps.filter(o=>o.status==='active').forEach(o=>{
+    if(o.countryLoc)locSet.add(o.countryLoc.toLowerCase());
+    if(o.countryOffer)offerSet.add(o.countryOffer.toLowerCase());
+    if(o.countrySupply)supplySet.add(o.countrySupply.toLowerCase());
+  });
 
-  const color=d3.scaleThreshold([1,3,6,10],isDark?['#2a2a2a','#0C2A45','#185FA5','#378ADD','#85B7EB']:['#e8e8e8','#B5D4F4','#378ADD','#185FA5','#0C447C']);
+  function getCountryColor(name){
+    const n=name.toLowerCase();
+    const isLoc=locSet.has(n),isOffer=offerSet.has(n),isSupply=supplySet.has(n);
+    if(isLoc&&(isOffer||isSupply))return '#7C3AED'; // purple = multiple roles
+    if(isLoc)return '#185FA5';
+    if(isOffer)return '#D97706';
+    if(isSupply)return '#059669';
+    return isDark?'#2a2a2a':'#e0e0de';
+  }
 
   d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
     svg.selectAll('path')
       .data(topojson.feature(world,world.objects.countries).features)
       .join('path')
       .attr('d',path)
-      .attr('fill',d=>color(cmap[(d.properties?.name||'').toLowerCase()]||0))
+      .attr('fill',d=>getCountryColor(d.properties?.name||''))
       .attr('stroke',isDark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.1)')
       .attr('stroke-width',0.4)
       .style('cursor','pointer')
       .on('mousemove',(e,d)=>{
         const name=d.properties?.name||'';
-        const cnt=cmap[name.toLowerCase()]||0;
+        const n=name.toLowerCase();
+        const roles=[];
+        if(locSet.has(n))roles.push('📍 Proje lokasyonu');
+        if(offerSet.has(n))roles.push('🟠 Teklif edilen');
+        if(supplySet.has(n))roles.push('🟢 Alım yapılan');
         tip.style.display='block';
         tip.style.left=(e.offsetX+12)+'px';
         tip.style.top=(e.offsetY-8)+'px';
-        tip.innerHTML=`<strong>${name}</strong><br>${cnt?cnt+' aktif fırsat':'Fırsat yok'}`;
+        tip.innerHTML=`<strong>${name}</strong>${roles.length?'<br>'+roles.join('<br>'):'<br><span style="color:#999">Fırsat yok</span>'}`;
       })
       .on('mouseleave',()=>{tip.style.display='none';})
       .on('click',(e,d)=>{
         const name=d.properties?.name||'';
-        const matches=opps.filter(o=>(o.country||'').toLowerCase()===name.toLowerCase());
-        if(matches.length)showCountryDetail(name);
+        const n=name.toLowerCase();
+        if(locSet.has(n)){selectLocCountry(name);return;}
+        // if offer or supply country clicked show related opps
+        const rel=opps.filter(o=>(o.countryOffer||'').toLowerCase()===n||(o.countrySupply||'').toLowerCase()===n);
+        if(rel.length){
+          document.getElementById('map-route-info').innerHTML='';
+          document.getElementById('country-detail').innerHTML=`
+            <div class="section-title" style="margin-top:1rem;margin-bottom:.75rem">${name} — ilgili fırsatlar</div>
+            <div class="opp-list">`+rel.map(o=>`<div class="opp-card" style="padding:.875rem 1rem">
+              <div style="font-weight:600">${o.title}</div>
+              <div style="font-size:12px;color:var(--text2)">${o.company} · ${o.stage}${o.countryLoc?' · 📍'+o.countryLoc:''}</div>
+            </div>`).join('')+'</div>';
+        }
       });
   }).catch(()=>{
-    svg.append('text').attr('x',W/2).attr('y',H/2).attr('text-anchor','middle')
+    svg.append('text').attr('x',mapW/2).attr('y',mapH/2).attr('text-anchor','middle')
       .attr('fill',isDark?'#aaa':'#666').attr('font-size',14).text('Harita yüklenemedi.');
   });
 }
