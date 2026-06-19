@@ -264,11 +264,51 @@
         <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#059669;display:inline-block"></span>Alım Yapılan Ülke</span>
       </div>
       <div class="form-row" style="margin-bottom:8px">
-        <div class="form-group" style="margin-bottom:0"><label>📍 Proje lokasyonu</label><input id="m-country-loc" placeholder="Kazakistan, Azerbaycan..."></div>
-        <div class="form-group" style="margin-bottom:0"><label>🟠 Teklif edilen ülke</label><input id="m-country-offer" placeholder="Türkiye, Almanya..."></div>
+        <div class="form-group" style="margin-bottom:0"><label>📍 Proje lokasyonu</label>
+          <input id="m-country-loc" list="country-list-dl" placeholder="Ülke ara veya seç..." autocomplete="off">
+        </div>
+        <div class="form-group" style="margin-bottom:0"><label>🟠 Teklif edilen ülke</label>
+          <input id="m-country-offer" list="country-list-dl" placeholder="Ülke ara veya seç..." autocomplete="off">
+        </div>
       </div>
-      <div class="form-group" style="margin-bottom:0"><label>🟢 Ürünün alınacağı ülke</label><input id="m-country-supply" placeholder="Çin, ABD, İtalya..."></div>
+      <div class="form-group" style="margin-bottom:0"><label>🟢 Ürünün alınacağı ülke</label>
+        <input id="m-country-supply" list="country-list-dl" placeholder="Ülke ara veya seç..." autocomplete="off">
+      </div>
     </div>
+    <datalist id="country-list-dl">
+      <option value="Afganistan"><option value="Almanya"><option value="Amerika Birleşik Devletleri">
+      <option value="Angola"><option value="Arjantin"><option value="Avustralya"><option value="Avusturya">
+      <option value="Azerbaycan"><option value="Bahreyn"><option value="Bangladeş"><option value="Belçika">
+      <option value="Beyaz Rusya"><option value="Brezilya"><option value="Bulgaristan"><option value="Cezayir">
+      <option value="Çin"><option value="Danimarka"><option value="Endonezya"><option value="Eritre">
+      <option value="Ermenistan"><option value="Etiyopya"><option value="Filipinler"><option value="Finlandiya">
+      <option value="Fransa"><option value="Güney Afrika"><option value="Güney Kore"><option value="Gürcistan">
+      <option value="Hindistan"><option value="Hollanda"><option value="Irak"><option value="İngiltere">
+      <option value="İran"><option value="İspanya"><option value="İsveç"><option value="İsviçre">
+      <option value="İtalya"><option value="İsrail"><option value="Japonya"><option value="Kanada">
+      <option value="Katar"><option value="Kazakistan"><option value="Kırgızistan"><option value="Kolombiya">
+      <option value="Kuveyt"><option value value="Libya"><option value="Lüksemburg"><option value="Macaristan">
+      <option value="Malezya"><option value="Meksika"><option value="Mısır"><option value="Moğolistan">
+      <option value="Nijerya"><option value="Norveç"><option value="Özbekistan"><option value="Pakistan">
+      <option value="Polonya"><option value="Portekiz"><option value="Romanya"><option value="Rusya">
+      <option value="Suudi Arabistan"><option value="Singapur"><option value="Sırbistan"><option value="Suriye">
+      <option value="Tayland"><option value="Tacikistan"><option value="Türkiye"><option value="Türkmenistan">
+      <option value="Ukrayna"><option value="Umman"><option value="Ürdün"><option value="Vietnam">
+      <option value="Yemen"><option value="Yunanistan"><option value="Yeni Zelanda">
+      <option value="Birleşik Arap Emirlikleri"><option value="Çek Cumhuriyeti"><option value="Slovakya">
+      <option value="Slovenya"><option value="Hırvatistan"><option value="Bosna Hersek"><option value="Arnavutluk">
+      <option value="Kuzey Makedonya"><option value="Kosova"><option value="Moldova"><option value="Letonya">
+      <option value="Litvanya"><option value="Estonya"><option value="Kıbrıs"><option value="Malta">
+      <option value="İrlanda"><option value="İzlanda"><option value="Tunus"><option value="Fas">
+      <option value="Sudan"><option value="Kenya"><option value="Tanzanya"><option value="Gana">
+      <option value="Senegal"><option value="Kamerun"><option value="Mozambik"><option value="Zambiya">
+      <option value="Zimbabwe"><option value="Madagaskar"><option value="Küba"><option value="Dominik Cumhuriyeti">
+      <option value="Peru"><option value="Şili"><option value="Venezüela"><option value="Ekvador">
+      <option value="Bolivya"><option value="Paraguay"><option value="Uruguay"><option value="Guatemala">
+      <option value="Honduras"><option value="El Salvador"><option value="Nikaragua"><option value="Kosta Rika">
+      <option value="Panama"><option value="Sri Lanka"><option value="Myanmar"><option value="Kamboçya">
+      <option value="Laos"><option value="Nepal"><option value="Bhutan"><option value="Maldivler">
+    </datalist>
     <div class="form-group"><label>Satış aşaması</label>
       <div class="stages-select" id="stage-select">
         <span class="stage-opt selected" data-s="Lead" onclick="pickStage(this)">Lead</span>
@@ -512,7 +552,7 @@ function openModal(id){
   document.getElementById('m-title').focus();
 }
 function closeModal(){document.getElementById('modal').style.display='none';}
-function modalOutside(e){if(e.target.id==='modal')closeModal();}
+function modalOutside(e){/* Dışarı tıklayarak çıkış devre dışı — sadece İptal veya Kaydet ile çıkılır */}
 function pickStage(el){
   document.querySelectorAll('.stage-opt').forEach(x=>x.classList.remove('selected'));
   el.classList.add('selected');
@@ -578,55 +618,169 @@ function showCountryDetail(country){
 }
 
 // Country name → approximate centroid [lon, lat]
+// Hem Türkçe hem İngilizce isimler eşleştirildi
 const COUNTRY_COORDS={
+  // Türkiye
   'Turkey':[35.24,38.96],'Türkiye':[35.24,38.96],
+  // Orta Asya
   'Kazakhstan':[66.92,48.02],'Kazakistan':[66.92,48.02],
   'Azerbaijan':[47.58,40.14],'Azerbaycan':[47.58,40.14],
+  'Turkmenistan':[58.99,38.97],'Türkmenistan':[58.99,38.97],
+  'Uzbekistan':[63.97,41.38],'Özbekistan':[63.97,41.38],
+  'Kyrgyzstan':[74.76,41.20],'Kırgızistan':[74.76,41.20],
+  'Tajikistan':[71.28,38.86],'Tacikistan':[71.28,38.86],
+  'Georgia':[43.36,42.32],'Gürcistan':[43.36,42.32],
+  'Armenia':[44.95,40.07],'Ermenistan':[44.95,40.07],
+  // Rusya & Doğu Avrupa
   'Russia':[105.31,61.52],'Rusya':[105.31,61.52],
+  'Ukraine':[31.16,48.38],'Ukrayna':[31.16,48.38],
+  'Belarus':[27.95,53.71],'Beyaz Rusya':[27.95,53.71],
+  'Moldova':[28.37,47.41],'Moldova':[28.37,47.41],
+  // Batı Avrupa
   'Germany':[10.45,51.16],'Almanya':[10.45,51.16],
   'Italy':[12.57,41.87],'İtalya':[12.57,41.87],
   'France':[2.21,46.23],'Fransa':[2.21,46.23],
   'United Kingdom':[-3.44,55.38],'İngiltere':[-3.44,55.38],
-  'United States':[-95.71,37.09],'ABD':[-95.71,37.09],
+  'Netherlands':[5.29,52.13],'Hollanda':[5.29,52.13],
+  'Spain':[-3.75,40.46],'İspanya':[-3.75,40.46],
+  'Portugal':[-8.22,39.40],'Portekiz':[-8.22,39.40],
+  'Belgium':[4.47,50.50],'Belçika':[4.47,50.50],
+  'Switzerland':[8.23,46.82],'İsviçre':[8.23,46.82],
+  'Austria':[14.55,47.52],'Avusturya':[14.55,47.52],
+  'Sweden':[18.64,60.13],'İsveç':[18.64,60.13],
+  'Norway':[8.47,60.47],'Norveç':[8.47,60.47],
+  'Denmark':[9.50,56.26],'Danimarka':[9.50,56.26],
+  'Finland':[25.75,61.92],'Finlandiya':[25.75,61.92],
+  'Poland':[19.14,51.92],'Polonya':[19.14,51.92],
+  'Romania':[24.97,45.94],'Romanya':[24.97,45.94],
+  'Bulgaria':[25.49,42.73],'Bulgaristan':[25.49,42.73],
+  'Greece':[21.82,39.07],'Yunanistan':[21.82,39.07],
+  'Czech Republic':[15.47,49.82],'Çek Cumhuriyeti':[15.47,49.82],
+  'Slovakia':[19.70,48.67],'Slovakya':[19.70,48.67],
+  'Hungary':[19.50,47.16],'Macaristan':[19.50,47.16],
+  'Serbia':[21.01,44.02],'Sırbistan':[21.01,44.02],
+  'Croatia':[15.20,45.10],'Hırvatistan':[15.20,45.10],
+  'Bosnia and Herzegovina':[17.68,44.17],'Bosna Hersek':[17.68,44.17],
+  'Albania':[20.17,41.15],'Arnavutluk':[20.17,41.15],
+  'North Macedonia':[21.74,41.61],'Kuzey Makedonya':[21.74,41.61],
+  'Kosovo':[20.90,42.57],'Kosova':[20.90,42.57],
+  'Ireland':[-8.24,53.41],'İrlanda':[-8.24,53.41],
+  'Luxembourg':[6.13,49.82],'Lüksemburg':[6.13,49.82],
+  'Cyprus':[33.43,35.13],'Kıbrıs':[33.43,35.13],
+  'Estonia':[25.01,58.60],'Estonya':[25.01,58.60],
+  'Latvia':[24.60,56.88],'Letonya':[24.60,56.88],
+  'Lithuania':[23.88,55.17],'Litvanya':[23.88,55.17],
+  // Orta Doğu
+  'Saudi Arabia':[45.08,23.89],'Suudi Arabistan':[45.08,23.89],
+  'UAE':[53.85,23.42],'Birleşik Arap Emirlikleri':[53.85,23.42],'United Arab Emirates':[53.85,23.42],
+  'Iran':[53.69,32.43],'İran':[53.69,32.43],
+  'Iraq':[43.68,33.22],'Irak':[43.68,33.22],
+  'Qatar':[51.18,25.35],'Katar':[51.18,25.35],
+  'Kuwait':[47.48,29.31],'Kuveyt':[47.48,29.31],
+  'Bahrain':[50.56,26.07],'Bahreyn':[50.56,26.07],
+  'Oman':[57.55,21.51],'Umman':[57.55,21.51],
+  'Yemen':[47.59,15.55],'Yemen':[47.59,15.55],
+  'Jordan':[36.24,30.59],'Ürdün':[36.24,30.59],
+  'Syria':[38.99,34.80],'Suriye':[38.99,34.80],
+  'Israel':[34.85,31.05],'İsrail':[34.85,31.05],
+  'Libya':[17.23,26.34],'Libya':[17.23,26.34],
+  // Asya
   'China':[104.19,35.86],'Çin':[104.19,35.86],
   'Japan':[138.25,36.20],'Japonya':[138.25,36.20],
   'South Korea':[127.77,35.91],'Güney Kore':[127.77,35.91],
-  'Saudi Arabia':[45.08,23.89],'Suudi Arabistan':[45.08,23.89],
-  'UAE':[53.85,23.42],'Birleşik Arap Emirlikleri':[53.85,23.42],
-  'Iran':[53.69,32.43],'İran':[53.69,32.43],
-  'Iraq':[43.68,33.22],'Irak':[43.68,33.22],
-  'Egypt':[30.80,26.82],'Mısır':[30.80,26.82],
-  'Netherlands':[5.29,52.13],'Hollanda':[5.29,52.13],
-  'Spain':[-3.75,40.46],'İspanya':[-3.75,40.46],
-  'Poland':[19.14,51.92],'Polonya':[19.14,51.92],
-  'Ukraine':[31.16,48.38],'Ukrayna':[31.16,48.38],
-  'Romania':[24.97,45.94],'Romanya':[24.97,45.94],
-  'Greece':[21.82,39.07],'Yunanistan':[21.82,39.07],
-  'Bulgaria':[25.49,42.73],'Bulgaristan':[25.49,42.73],
-  'Georgia':[43.36,42.32],'Gürcistan':[43.36,42.32],
-  'Turkmenistan':[58.99,38.97],'Türkmenistan':[58.99,38.97],
-  'Uzbekistan':[63.97,41.38],'Özbekistan':[63.97,41.38],
   'India':[78.96,20.59],'Hindistan':[78.96,20.59],
   'Pakistan':[69.35,30.38],'Pakistan':[69.35,30.38],
-  'Qatar':[51.18,25.35],'Katar':[51.18,25.35],
-  'Kuwait':[47.48,29.31],'Kuveyt':[47.48,29.31],
-  'Libya':[17.23,26.34],'Libya':[17.23,26.34],
-  'Algeria':[1.66,28.03],'Cezayir':[1.66,28.03],
-  'Nigeria':[8.67,9.08],'Nijerya':[8.67,9.08],
-  'South Africa':[22.94,-30.56],'Güney Afrika':[22.94,-30.56],
-  'Brazil':[-51.93,-14.24],'Brezilya':[-51.93,-14.24],
-  'Argentina':[-63.62,-38.42],'Arjantin':[-63.62,-38.42],
-  'Mexico':[-102.55,23.63],'Meksika':[-102.55,23.63],
-  'Canada':[-96.82,56.13],'Kanada':[-96.82,56.13],
-  'Australia':[133.78,-25.27],'Avustralya':[133.78,-25.27],
+  'Bangladesh':[90.36,23.68],'Bangladeş':[90.36,23.68],
   'Singapore':[103.82,1.35],'Singapur':[103.82,1.35],
   'Malaysia':[109.70,4.21],'Malezya':[109.70,4.21],
   'Indonesia':[113.92,-0.79],'Endonezya':[113.92,-0.79],
+  'Thailand':[100.99,15.87],'Tayland':[100.99,15.87],
+  'Vietnam':[108.28,14.06],'Vietnam':[108.28,14.06],
+  'Philippines':[121.77,12.88],'Filipinler':[121.77,12.88],
+  'Myanmar':[95.96,16.87],'Myanmar':[95.96,16.87],
+  'Mongolia':[103.85,46.86],'Moğolistan':[103.85,46.86],
+  'Sri Lanka':[80.77,7.87],'Sri Lanka':[80.77,7.87],
+  'Nepal':[84.12,28.39],'Nepal':[84.12,28.39],
+  'Afghanistan':[67.71,33.93],'Afganistan':[67.71,33.93],
+  // Afrika
+  'Egypt':[30.80,26.82],'Mısır':[30.80,26.82],
+  'Algeria':[1.66,28.03],'Cezayir':[1.66,28.03],
+  'Nigeria':[8.67,9.08],'Nijerya':[8.67,9.08],
+  'South Africa':[22.94,-30.56],'Güney Afrika':[22.94,-30.56],
+  'Morocco':[-7.09,31.79],'Fas':[-7.09,31.79],
+  'Tunisia':[9.54,33.89],'Tunus':[9.54,33.89],
+  'Ethiopia':[40.49,9.15],'Etiyopya':[40.49,9.15],
+  'Kenya':[37.91,-0.02],'Kenya':[37.91,-0.02],
+  'Sudan':[29.97,12.86],'Sudan':[29.97,12.86],
+  'Tanzania':[34.89,-6.37],'Tanzanya':[34.89,-6.37],
+  'Ghana':[-1.02,7.95],'Gana':[-1.02,7.95],
+  'Angola':[17.87,-11.20],'Angola':[17.87,-11.20],
+  'Cameroon':[12.35,3.85],'Kamerun':[12.35,3.85],
+  'Senegal':[-14.45,14.50],'Senegal':[-14.45,14.50],
+  'Mozambique':[35.53,-18.67],'Mozambik':[35.53,-18.67],
+  // Amerika
+  'United States':[-95.71,37.09],'Amerika Birleşik Devletleri':[-95.71,37.09],'ABD':[-95.71,37.09],
+  'Canada':[-96.82,56.13],'Kanada':[-96.82,56.13],
+  'Mexico':[-102.55,23.63],'Meksika':[-102.55,23.63],
+  'Brazil':[-51.93,-14.24],'Brezilya':[-51.93,-14.24],
+  'Argentina':[-63.62,-38.42],'Arjantin':[-63.62,-38.42],
+  'Chile':[-71.54,-35.68],'Şili':[-71.54,-35.68],
+  'Colombia':[-74.30,4.57],'Kolombiya':[-74.30,4.57],
+  'Peru':[-75.02,-9.19],'Peru':[-75.02,-9.19],
+  'Venezuela':[-66.59,6.42],'Venezüela':[-66.59,6.42],
+  'Ecuador':[-78.18,-1.83],'Ekvador':[-78.18,-1.83],
+  'Bolivia':[-64.67,-16.29],'Bolivya':[-64.67,-16.29],
+  'Cuba':[-79.52,21.52],'Küba':[-79.52,21.52],
+  // Okyanusya
+  'Australia':[133.78,-25.27],'Avustralya':[133.78,-25.27],
+  'New Zealand':[172.83,-40.90],'Yeni Zelanda':[172.83,-40.90],
 };
 
-function getCoord(name){return COUNTRY_COORDS[name]||null;}
+// Türkçe ülke adı → D3 haritasındaki İngilizce ad
+const TR_TO_MAP={
+  'Türkiye':'Turkey','Almanya':'Germany','Fransa':'France','İtalya':'Italy',
+  'İngiltere':'United Kingdom','Hollanda':'Netherlands','İspanya':'Spain',
+  'Portekiz':'Portugal','Belçika':'Belgium','İsviçre':'Switzerland',
+  'Avusturya':'Austria','İsveç':'Sweden','Norveç':'Norway','Danimarka':'Denmark',
+  'Finlandiya':'Finland','Polonya':'Poland','Romanya':'Romania','Bulgaristan':'Bulgaria',
+  'Yunanistan':'Greece','Macaristan':'Hungary','Çek Cumhuriyeti':'Czech Republic',
+  'Slovakya':'Slovakia','Sırbistan':'Serbia','Hırvatistan':'Croatia',
+  'Bosna Hersek':'Bosnia and Herzegovina','Arnavutluk':'Albania',
+  'Kuzey Makedonya':'North Macedonia','Kosova':'Kosovo','İrlanda':'Ireland',
+  'Lüksemburg':'Luxembourg','Kıbrıs':'Cyprus','Estonya':'Estonia',
+  'Letonya':'Latvia','Litvanya':'Lithuania','Ukrayna':'Ukraine',
+  'Beyaz Rusya':'Belarus','Moldova':'Moldova','Gürcistan':'Georgia',
+  'Ermenistan':'Armenia','Azerbaycan':'Azerbaijan','Rusya':'Russia',
+  'Kazakistan':'Kazakhstan','Özbekistan':'Uzbekistan','Türkmenistan':'Turkmenistan',
+  'Kırgızistan':'Kyrgyzstan','Tacikistan':'Tajikistan','Afganistan':'Afghanistan',
+  'Pakistan':'Pakistan','Hindistan':'India','Bangladeş':'Bangladesh',
+  'Nepal':'Nepal','Sri Lanka':'Sri Lanka','Myanmar':'Myanmar',
+  'Tayland':'Thailand','Vietnam':'Vietnam','Malezya':'Malaysia',
+  'Singapur':'Singapore','Endonezya':'Indonesia','Filipinler':'Philippines',
+  'Japonya':'Japan','Güney Kore':'South Korea','Çin':'China',
+  'Moğolistan':'Mongolia','İran':'Iran','Irak':'Iraq',
+  'Suudi Arabistan':'Saudi Arabia','Birleşik Arap Emirlikleri':'United Arab Emirates',
+  'Katar':'Qatar','Kuveyt':'Kuwait','Bahreyn':'Bahrain','Umman':'Oman',
+  'Yemen':'Yemen','Ürdün':'Jordan','Suriye':'Syria','İsrail':'Israel',
+  'Libya':'Libya','Mısır':'Egypt','Cezayir':'Algeria','Fas':'Morocco',
+  'Tunus':'Tunisia','Sudan':'Sudan','Nijerya':'Nigeria','Kenya':'Kenya',
+  'Etiyopya':'Ethiopia','Tanzanya':'Tanzania','Gana':'Ghana','Angola':'Angola',
+  'Kamerun':'Cameroon','Senegal':'Senegal','Mozambik':'Mozambique',
+  'Güney Afrika':'South Africa','Amerika Birleşik Devletleri':'United States',
+  'ABD':'United States','Kanada':'Canada','Meksika':'Mexico',
+  'Brezilya':'Brazil','Arjantin':'Argentina','Şili':'Chile',
+  'Kolombiya':'Colombia','Peru':'Peru','Venezüela':'Venezuela',
+  'Ekvador':'Ecuador','Bolivya':'Bolivia','Küba':'Cuba',
+  'Avustralya':'Australia','Yeni Zelanda':'New Zealand',
+};
 
-let mapProj=null,mapSvgSel=null,mapW=900,mapH=420;
+function normalizeCountry(name){
+  if(!name)return'';
+  return TR_TO_MAP[name]||name;
+}
+
+function getCoord(name){return COUNTRY_COORDS[name]||null;}
+,mapSvgSel=null,mapW=900,mapH=420;
 let animationFrames=[];
 
 function clearAnimations(){animationFrames.forEach(clearTimeout);animationFrames=[];mapSvgSel&&mapSvgSel.selectAll('.route-layer').remove();}
@@ -636,7 +790,7 @@ function selectLocCountry(locName){
   document.getElementById('country-detail').innerHTML='';
   showCountryDetail(locName);
 
-  const locCoord=getCoord(locName);
+  const locCoord=getCoord(locName)||getCoord(normalizeCountry(locName));
   if(!locCoord||!mapProj){return;}
 
   const relevantOpps=opps.filter(o=>o.status==='active'&&(o.countryLoc===locName||o.country===locName));
@@ -666,7 +820,7 @@ function selectLocCountry(locName){
   relevantOpps.forEach((o,oi)=>{
     // Draw offer country route
     if(o.countryOffer){
-      const c=getCoord(o.countryOffer);
+      const c=getCoord(o.countryOffer)||getCoord(normalizeCountry(o.countryOffer));
       if(c){
         const px=mapProj(c);
         drawAnimatedRoute(layer,locPx,px,'#D97706',o.shipmode,oi*120);
@@ -678,7 +832,7 @@ function selectLocCountry(locName){
     }
     // Draw supply country route
     if(o.countrySupply){
-      const c=getCoord(o.countrySupply);
+      const c=getCoord(o.countrySupply)||getCoord(normalizeCountry(o.countrySupply));
       if(c){
         const px=mapProj(c);
         drawAnimatedRoute(layer,px,locPx,'#059669',o.shipmode,oi*120+60);
@@ -741,12 +895,12 @@ function loadMap(){
   const isDark=matchMedia('(prefers-color-scheme:dark)').matches;
   const tip=document.getElementById('map-tooltip');
 
-  // Build country sets
+  // Build country sets — normalize Turkish names to English for map matching
   const locSet=new Set(),offerSet=new Set(),supplySet=new Set();
   opps.filter(o=>o.status==='active').forEach(o=>{
-    if(o.countryLoc)locSet.add(o.countryLoc.toLowerCase());
-    if(o.countryOffer)offerSet.add(o.countryOffer.toLowerCase());
-    if(o.countrySupply)supplySet.add(o.countrySupply.toLowerCase());
+    if(o.countryLoc)locSet.add(normalizeCountry(o.countryLoc).toLowerCase());
+    if(o.countryOffer)offerSet.add(normalizeCountry(o.countryOffer).toLowerCase());
+    if(o.countrySupply)supplySet.add(normalizeCountry(o.countrySupply).toLowerCase());
   });
 
   function getCountryColor(name){
