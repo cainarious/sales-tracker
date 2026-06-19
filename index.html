@@ -110,9 +110,46 @@
   .empty-state i{font-size:36px;display:block;margin-bottom:10px}
   .divider{border:none;border-top:0.5px solid var(--border);margin:1.25rem 0}
 </style>
+<style>
+  #lock-screen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f1923 0%,#0e2a4a 50%,#0a1f38 100%);overflow:hidden}
+  #lock-screen::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(24,95,165,0.18) 0%,transparent 70%);top:-100px;right:-100px;pointer-events:none}
+  #lock-screen::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(55,138,221,0.12) 0%,transparent 70%);bottom:-80px;left:-80px;pointer-events:none}
+  .lock-box{background:rgba(255,255,255,0.04);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:3rem 2.5rem;width:380px;max-width:92%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.08);position:relative;z-index:1}
+  .lock-logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#185FA5,#378ADD);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;box-shadow:0 8px 24px rgba(24,95,165,0.4)}
+  .lock-logo i{font-size:26px;color:#fff}
+  .lock-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:6px;letter-spacing:-0.3px}
+  .lock-sub{font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:2rem}
+  .lock-input-wrap{position:relative;margin-bottom:14px}
+  .lock-input{width:100%;padding:13px 16px 13px 44px;border:1px solid rgba(255,255,255,0.12);border-radius:12px;font-size:15px;text-align:left;letter-spacing:2px;background:rgba(255,255,255,0.06);color:#fff;transition:border-color 0.2s,background 0.2s}
+  .lock-input::placeholder{letter-spacing:0;color:rgba(255,255,255,0.3);font-size:13px}
+  .lock-input:focus{outline:none;border-color:rgba(55,138,221,0.7);background:rgba(255,255,255,0.09)}
+  .lock-input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.35);font-size:16px;pointer-events:none}
+  .lock-btn{width:100%;padding:13px;background:linear-gradient(135deg,#185FA5,#378ADD);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.3px;box-shadow:0 4px 16px rgba(24,95,165,0.35);transition:opacity 0.15s,transform 0.15s}
+  .lock-btn:hover{opacity:0.9;transform:translateY(-1px)}
+  .lock-btn:active{transform:translateY(0)}
+  .lock-error{color:#f87171;font-size:12px;margin-top:10px;min-height:18px}
+  .lock-shake{animation:shake 0.4s ease}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+</style>
 </head>
 <body>
-<div class="app-shell">
+
+<!-- LOCK SCREEN -->
+<div id="lock-screen">
+  <div class="lock-box" id="lock-box">
+    <div class="lock-logo"><i class="ti ti-chart-arrows-vertical"></i></div>
+    <div class="lock-title">Sales Tracker</div>
+    <div class="lock-sub">Devam etmek için şifrenizi girin</div>
+    <div class="lock-input-wrap">
+      <i class="ti ti-lock lock-input-icon"></i>
+      <input class="lock-input" type="password" id="lock-input" placeholder="Şifre" onkeydown="if(event.key==='Enter')checkPass()" autocomplete="current-password">
+    </div>
+    <button class="lock-btn" onclick="checkPass()">Giriş Yap</button>
+    <div class="lock-error" id="lock-error"></div>
+  </div>
+</div>
+
+<div class="app-shell" id="app-shell" style="display:none">
   <div class="app-header">
     <div class="app-title">
       <i class="ti ti-chart-arrows-vertical" style="color:var(--blue);font-size:24px"></i>
@@ -238,6 +275,33 @@
 </div>
 
 <script>
+// ─── ŞİFRE AYARI ─── değiştirmek istersen buraya yaz ───
+const APP_PASS = 'Cainar2024!';
+// ─────────────────────────────────────────────────────
+
+function checkPass(){
+  const val=document.getElementById('lock-input').value;
+  if(val===APP_PASS){
+    sessionStorage.setItem('crm_auth','1');
+    document.getElementById('lock-screen').style.display='none';
+    document.getElementById('app-shell').style.display='block';
+    load();renderDashboard();
+  } else {
+    const box=document.getElementById('lock-box');
+    document.getElementById('lock-error').textContent='Yanlış şifre, tekrar dene.';
+    document.getElementById('lock-input').value='';
+    box.classList.remove('lock-shake');
+    void box.offsetWidth;
+    box.classList.add('lock-shake');
+  }
+}
+
+// Oturum açıksa direkt geç
+if(sessionStorage.getItem('crm_auth')==='1'){
+  document.getElementById('lock-screen').style.display='none';
+  document.getElementById('app-shell').style.display='block';
+}
+
 const STAGES=['Lead','Qualification','Proposal','Negotiation','Closing'];
 const S_COLORS=['#B5D4F4','#85B7EB','#378ADD','#185FA5','#0C447C'];
 const PCT_MAP={Lead:10,Qualification:25,Proposal:50,Negotiation:75,Closing:90};
@@ -508,8 +572,8 @@ function loadMap(){
   });
 }
 
-load();
-renderDashboard();
+// Giriş yapılmışsa yükle, yapılmamışsa lock screen bekler
+if(sessionStorage.getItem('crm_auth')==='1'){load();renderDashboard();}
 </script>
 </body>
 </html>
