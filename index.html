@@ -353,7 +353,7 @@ function checkPass(){
     sessionStorage.setItem('crm_auth','1');
     document.getElementById('lock-screen').style.display='none';
     document.getElementById('app-shell').style.display='block';
-    load();renderDashboard();
+    initApp();
   } else {
     const box=document.getElementById('lock-box');
     document.getElementById('lock-error').textContent='Yanlış şifre, tekrar dene.';
@@ -364,11 +364,14 @@ function checkPass(){
   }
 }
 
-// Oturum açıksa direkt geç
-if(sessionStorage.getItem('crm_auth')==='1'){
-  document.getElementById('lock-screen').style.display='none';
-  document.getElementById('app-shell').style.display='block';
-}
+// Oturum açıksa direkt geç — initApp sonra tanımlanıyor, DOMContentLoaded'da çalışır
+document.addEventListener('DOMContentLoaded',function(){
+  if(sessionStorage.getItem('crm_auth')==='1'){
+    document.getElementById('lock-screen').style.display='none';
+    document.getElementById('app-shell').style.display='block';
+    initApp();
+  }
+});
 
 const STAGES=['Lead','Qualification','Proposal','Negotiation','Closing'];
 const S_COLORS=['#B5D4F4','#85B7EB','#378ADD','#185FA5','#0C447C'];
@@ -957,8 +960,7 @@ function loadMap(){
   });
 }
 
-// Giriş yapılmışsa yükle, yapılmamışsa lock screen bekler
-if(sessionStorage.getItem('crm_auth')==='1'){load();renderDashboard();}
+function initApp(){load();renderDashboard();}
 </script>
 </body>
 </html>
