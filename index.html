@@ -142,9 +142,9 @@
     <div class="lock-sub">Devam etmek için şifrenizi girin</div>
     <div class="lock-input-wrap">
       <i class="ti ti-lock lock-input-icon"></i>
-      <input class="lock-input" type="password" id="lock-input" placeholder="Şifre" onkeydown="if(event.key==='Enter')checkPass()" autocomplete="current-password">
+      <input class="lock-input" type="password" id="lock-input" placeholder="Şifre" autocomplete="current-password">
     </div>
-    <button class="lock-btn" onclick="checkPass()">Giriş Yap</button>
+    <button class="lock-btn" id="lock-btn">Giriş Yap</button>
     <div class="lock-error" id="lock-error"></div>
   </div>
 </div>
@@ -343,35 +343,9 @@
 </div>
 
 <script>
-// ─── ŞİFRE AYARI ─── değiştirmek istersen buraya yaz ───
+// ─── ŞİFRE AYARI ───
 const APP_PASS = 'Cainar2024!';
-// ─────────────────────────────────────────────────────
-
-function checkPass(){
-  const val=document.getElementById('lock-input').value;
-  if(val===APP_PASS){
-    sessionStorage.setItem('crm_auth','1');
-    document.getElementById('lock-screen').style.display='none';
-    document.getElementById('app-shell').style.display='block';
-    initApp();
-  } else {
-    const box=document.getElementById('lock-box');
-    document.getElementById('lock-error').textContent='Yanlış şifre, tekrar dene.';
-    document.getElementById('lock-input').value='';
-    box.classList.remove('lock-shake');
-    void box.offsetWidth;
-    box.classList.add('lock-shake');
-  }
-}
-
-// Oturum açıksa direkt geç — initApp sonra tanımlanıyor, DOMContentLoaded'da çalışır
-document.addEventListener('DOMContentLoaded',function(){
-  if(sessionStorage.getItem('crm_auth')==='1'){
-    document.getElementById('lock-screen').style.display='none';
-    document.getElementById('app-shell').style.display='block';
-    initApp();
-  }
-});
+// ───────────────────
 
 const STAGES=['Lead','Qualification','Proposal','Negotiation','Closing'];
 const S_COLORS=['#B5D4F4','#85B7EB','#378ADD','#185FA5','#0C447C'];
@@ -783,7 +757,8 @@ function normalizeCountry(name){
 }
 
 function getCoord(name){return COUNTRY_COORDS[name]||null;}
-,mapSvgSel=null,mapW=900,mapH=420;
+
+let mapProj=null,mapSvgSel=null,mapW=900,mapH=420;
 let animationFrames=[];
 
 function clearAnimations(){animationFrames.forEach(clearTimeout);animationFrames=[];mapSvgSel&&mapSvgSel.selectAll('.route-layer').remove();}
@@ -961,6 +936,39 @@ function loadMap(){
 }
 
 function initApp(){load();renderDashboard();}
+
+// ─── Tüm event listener'lar burada — DOM hazır olduktan sonra bağlanır ───
+document.addEventListener('DOMContentLoaded', function(){
+  // Şifre butonu ve Enter tuşu
+  document.getElementById('lock-btn').addEventListener('click', checkPass);
+  document.getElementById('lock-input').addEventListener('keydown', function(e){
+    if(e.key==='Enter') checkPass();
+  });
+
+  // Oturum zaten açıksa direkt giriş
+  if(sessionStorage.getItem('crm_auth')==='1'){
+    document.getElementById('lock-screen').style.display='none';
+    document.getElementById('app-shell').style.display='block';
+    initApp();
+  }
+});
+
+function checkPass(){
+  const val=document.getElementById('lock-input').value;
+  if(val===APP_PASS){
+    sessionStorage.setItem('crm_auth','1');
+    document.getElementById('lock-screen').style.display='none';
+    document.getElementById('app-shell').style.display='block';
+    initApp();
+  } else {
+    const box=document.getElementById('lock-box');
+    document.getElementById('lock-error').textContent='Yanlış şifre, tekrar dene.';
+    document.getElementById('lock-input').value='';
+    box.classList.remove('lock-shake');
+    void box.offsetWidth;
+    box.classList.add('lock-shake');
+  }
+}
 </script>
 </body>
 </html>
