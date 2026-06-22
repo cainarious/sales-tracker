@@ -354,7 +354,7 @@ function checkPass(){
     sessionStorage.setItem('crm_auth','1');
     document.getElementById('lock-screen').style.display='none';
     document.getElementById('app-shell').style.display='block';
-    load(); renderDashboard();
+    initApp();
   } else {
     var box=document.getElementById('lock-box');
     document.getElementById('lock-error').textContent='Yanlış şifre, tekrar dene.';
@@ -374,16 +374,89 @@ const COMPANIES=[
   {id:'INKA',name:'INKA',desc:'Fixing — proje takibi ve satış aşamaları',icon:'ti-tool',bg:'#FAEEDA',ic:'#854F0B'}
 ];
 
+// ─── SUPABASE CONFIG ───
+const SB_URL='https://wncqxmeybwomohihxocw.supabase.co';
+const SB_KEY='sb_publishable_onZcYizFswsVoO9Z2xnMfg_4ZHZgYu6';
+
+async function sbFetch(path,opts={}){
+  const res=await fetch(SB_URL+'/rest/v1/'+path,{
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})},
+    ...opts
+  });
+  if(!res.ok){const e=await res.text();console.error('Supabase error:',e);return null;}
+  const text=await res.text();
+  return text?JSON.parse(text):null;
+}
+
+function oppToRow(o){
+  return {
+    id:o.id, title:o.title, company:o.company,
+    shipmode:o.shipmode||null,
+    country_loc:o.countryLoc||null,
+    country_offer:o.countryOffer||null,
+    country_supply:o.countrySupply||null,
+    stage:o.stage||'Lead',
+    pct:o.pct||10,
+    price:o.price?parseFloat(o.price):null,
+    deadline:o.deadline||null,
+    decision_date:o.decisionDate||null,
+    status:o.status||'active',
+    description:o.desc||null,
+    created_at:o.createdAt||new Date().toISOString()
+  };
+}
+function rowToOpp(r){
+  return {
+    id:r.id, title:r.title, company:r.company,
+    shipmode:r.shipmode||'',
+    countryLoc:r.country_loc||'', country:r.country_loc||'',
+    countryOffer:r.country_offer||'',
+    countrySupply:r.country_supply||'',
+    stage:r.stage||'Lead', pct:r.pct||10,
+    price:r.price!=null?String(r.price):'',
+    deadline:r.deadline||'', decisionDate:r.decision_date||'',
+    status:r.status||'active', desc:r.description||'',
+    createdAt:r.created_at
+  };
+}
+
+async function load(){
+  showLoading(true);
+  const rows=await sbFetch('opportunities?select=*&order=created_at.desc');
+  if(rows){opps=rows.map(rowToOpp);}
+  else{opps=[];}
+  showLoading(false);
+}
+
+async function save(o){
+  // upsert single opportunity
+  const row=oppToRow(o);
+  await sbFetch('opportunities',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=representation'},body:JSON.stringify(row)});
+}
+
+async function deleteFromDB(id){
+  await sbFetch('opportunities?id=eq.'+id,{method:'DELETE'});
+}
+
+function showLoading(on){
+  let el=document.getElementById('loading-bar');
+  if(!el){
+    el=document.createElement('div');
+    el.id='loading-bar';
+    el.style.cssText='position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#185FA5,#378ADD);z-index:9999;transition:opacity 0.3s';
+    document.body.appendChild(el);
+  }
+  el.style.opacity=on?'1':'0';
+}
+
+function genId(){return 'o'+Date.now()+Math.random().toString(36).slice(2,6);}
+function daysDiff(s){if(!s)return null;return Math.ceil((new Date(s)-new Date())/(864e5));}
+function fmt(n){return parseFloat(n).toLocaleString('tr-TR',{maximumFractionDigits:0});}
+
 let opps=[];
 let editId=null;
 let stageChart=null;
 let mapLoaded=false;
-
-function load(){try{const d=localStorage.getItem('crm_v2');if(d)opps=JSON.parse(d);}catch(e){opps=[];}}
-function save(){try{localStorage.setItem('crm_v2',JSON.stringify(opps));}catch(e){}}
-function genId(){return 'o'+Date.now()+Math.random().toString(36).slice(2,6);}
-function daysDiff(s){if(!s)return null;return Math.ceil((new Date(s)-new Date())/(864e5));}
-function fmt(n){return parseFloat(n).toLocaleString('tr-TR',{maximumFractionDigits:0});}
 
 function showPage(p){
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
@@ -509,17 +582,20 @@ function renderOpps(){
   }).join(''):`<div class="empty-state"><i class="ti ti-inbox"></i>Fırsat bulunamadı.<br><button class="btn btn-primary" style="margin-top:12px" onclick="openModal()"><i class="ti ti-plus"></i> İlk fırsatı ekle</button></div>`;
 }
 
-function quickStage(id,stage){
+async function quickStage(id,stage){
   const o=opps.find(x=>x.id===id);if(!o)return;
-  o.stage=stage;o.pct=PCT_MAP[stage];save();renderOpps();
+  o.stage=stage;o.pct=PCT_MAP[stage];
+  await save(o);renderOpps();
 }
-function quickStatus(id,status){
+async function quickStatus(id,status){
   const o=opps.find(x=>x.id===id);if(!o)return;
-  o.status=status;save();renderOpps();renderDashboard();
+  o.status=status;
+  await save(o);renderOpps();renderDashboard();
 }
-function deleteOpp(id){
+async function deleteOpp(id){
   if(!confirm('Bu fırsatı silmek istiyor musunuz?'))return;
-  opps=opps.filter(o=>o.id!==id);save();renderOpps();renderDashboard();
+  await deleteFromDB(id);
+  opps=opps.filter(o=>o.id!==id);renderOpps();renderDashboard();
 }
 
 function openModal(id){
@@ -555,7 +631,7 @@ function pickStage(el){
   document.getElementById('m-stage').value=s;
   document.getElementById('m-pct').value=PCT_MAP[s];
 }
-function saveOpp(){
+async function saveOpp(){
   const title=document.getElementById('m-title').value.trim();
   if(!title){alert('Fırsat adı zorunludur!');document.getElementById('m-title').focus();return;}
   const data={
@@ -565,7 +641,6 @@ function saveOpp(){
     countryLoc:document.getElementById('m-country-loc').value.trim(),
     countryOffer:document.getElementById('m-country-offer').value.trim(),
     countrySupply:document.getElementById('m-country-supply').value.trim(),
-    // legacy compat
     country:document.getElementById('m-country-loc').value.trim(),
     stage:document.getElementById('m-stage').value||'Lead',
     pct:parseInt(document.getElementById('m-pct').value)||10,
@@ -576,9 +651,10 @@ function saveOpp(){
     desc:document.getElementById('m-desc').value.trim(),
     createdAt:editId?(opps.find(o=>o.id===editId)?.createdAt||new Date().toISOString()):new Date().toISOString()
   };
-  if(editId){const i=opps.findIndex(o=>o.id===editId);opps[i]=data;}
+  await save(data);
+  if(editId){const i=opps.findIndex(o=>o.id===editId);if(i>=0)opps[i]=data;else opps.unshift(data);}
   else opps.unshift(data);
-  save();closeModal();
+  closeModal();
   showPage('opportunities');
 }
 
@@ -953,13 +1029,13 @@ function loadMap(){
   });
 }
 
-function initApp(){load();renderDashboard();}
+async function initApp(){await load();renderDashboard();}
 
 window.addEventListener('load', function(){
   if(sessionStorage.getItem('crm_auth')==='1'){
     document.getElementById('lock-screen').style.display='none';
     document.getElementById('app-shell').style.display='block';
-    load(); renderDashboard();
+    initApp();
   }
 });
 </script>
