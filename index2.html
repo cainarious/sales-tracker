@@ -379,10 +379,14 @@ const SB_URL='https://bcwlrnfitqzdpkajbfqf.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjd2xybmZpdHF6ZHBrYWpiZnFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTc4NjAsImV4cCI6MjA5NzY5Mzg2MH0.1i9WXXo7Led_u_d0EZRpekox6U0qNTeWI2m91ikw3kQ';
 
 async function sbFetch(path,opts={}){
-  const res=await fetch(SB_URL+'/rest/v1/'+path,{
-    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})},
-    ...opts
-  });
+  const headers={
+    'apikey':SB_KEY,
+    'Authorization':'Bearer '+SB_KEY,
+    'Content-Type':'application/json',
+    'Prefer':'return=representation'
+  };
+  if(opts.headers){Object.assign(headers,opts.headers);}
+  const res=await fetch(SB_URL+'/rest/v1/'+path,{...opts,headers});
   if(!res.ok){const e=await res.text();console.error('Supabase error:',e);return null;}
   const text=await res.text();
   return text?JSON.parse(text):null;
