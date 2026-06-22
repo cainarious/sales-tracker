@@ -377,6 +377,7 @@ const COMPANIES=[
 // ─── SUPABASE CONFIG ───
 const SB_URL='https://wncqxmeybwomohihxocw.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InduY3F4bWV5YndvbW9oaWh4b2N3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjA4MjE3OCwiZXhwIjoyMDk3NjU4MTc4fQ._OsXDWH0oB5a-OPdk5vTLhTAymN0bWBFsE4nk7d5xkU';
+ 
 
 async function sbFetch(path,opts={}){
   const res=await fetch(SB_URL+'/rest/v1/'+path,{
